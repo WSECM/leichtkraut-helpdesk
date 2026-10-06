@@ -1,0 +1,759 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kommentare · Leichtkraut</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%231f6f4f'/%3E%3Ctext x='50' y='68' font-size='58' text-anchor='middle'%3E%F0%9F%92%AC%3C/text%3E%3C/svg%3E">
+<style>
+  :root {
+    --bg: #f4f5f7; --panel: #fff; --line: #e5e7eb; --line2: #eef0f3; --text: #15181d; --muted: #667085; --soft: #f2f4f7;
+    --brand: #1f6f4f; --brand-soft: #e6f3ec; --danger: #b3261e;
+    --rot: #d3372c; --rot-soft: #fdecea; --gelb: #d99a00; --gelb-soft: #fff5d6; --gruen: #2e9e5b; --gruen-soft: #e6f5ec;
+    --orange: #e0641c; --orange-soft: #fdeee3; --grau-soft: #eceef2;
+    --fb: #1877f2; --ig: #d62976; --radius: 12px; --shadow: 0 1px 2px rgba(16,24,40,.05), 0 1px 3px rgba(16,24,40,.06);
+  }
+  * { box-sizing: border-box }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text); font: 13px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif }
+  button { font: inherit; cursor: pointer } a { color: inherit }
+  body { animation: fadein .22s ease-out } @keyframes fadein { from { opacity: 0 } to { opacity: 1 } }
+  @keyframes rise { from { opacity: 0; transform: translateY(6px) } to { opacity: 1; transform: none } }
+  .detail .head, .detail .cmt, .detail .grp, .detail details { animation: rise .2s ease-out both }
+  .vid { animation: rise .18s ease-out both }
+  .list.noanim .vid { animation: none }
+  .detail.noanim .head, .detail.noanim .cmt, .detail.noanim .grp, .detail.noanim details { animation: none }
+  .cmt.fertig { opacity: 0; transform: translateY(-4px); max-height: 0 !important; margin-bottom: 0 !important; overflow: hidden; pointer-events: none;
+    transition: opacity .28s ease, transform .28s ease, max-height .38s ease .06s, margin .38s ease .06s }
+  .fertigmeld { display: flex; align-items: center; gap: 7px; font-size: 13px; font-weight: 600; color: var(--gruen); padding: 4px 0 2px }
+  /* Kopf */
+  .top { position: sticky; top: 0; z-index: 10; background: var(--panel); border-bottom: 1px solid var(--line); padding: 10px 18px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap }
+  .top h1 { font-size: 17px; margin: 0; font-weight: 700; letter-spacing: -.01em }
+  .top .sub { color: var(--muted); font-size: 12.5px }
+  .grow { flex: 1 }
+  .pill { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 999px; background: var(--soft); font-size: 12.5px; color: var(--muted) }
+  .pill.busy::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--brand); animation: pulse 1s infinite }
+  @keyframes pulse { 50% { opacity: .25 } }
+  .btn { border: 1px solid var(--line); background: var(--panel); border-radius: 9px; padding: 6px 11px; font-weight: 600; font-size: 13px; color: var(--text); display: inline-flex; align-items: center; gap: 6px; text-decoration: none }
+  .btn:hover { background: var(--soft) }
+  .btn.primary { background: linear-gradient(180deg, #2a9266, #1f6f4f); border-color: #1a5f43; color: #fff; box-shadow: 0 1px 2px rgba(31,111,79,.3) }
+  .btn.cta { background: linear-gradient(180deg, #2a9266, #1f6f4f); border-color: #1a5f43; color: #fff; padding: 7px 14px; font-size: 13px; border-radius: 10px; box-shadow: 0 2px 6px rgba(31,111,79,.32); transition: transform .12s, box-shadow .12s }
+  .btn.cta:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(31,111,79,.36); background: linear-gradient(180deg, #2f9c6d, #22775a) }
+  .btn.cta:active { transform: none }
+  .btn:disabled { opacity: .5; cursor: default }
+  .btn.sm { padding: 4px 9px; font-size: 12.5px }
+  .btn.ghost { border-color: transparent; background: transparent; color: var(--muted); font-weight: 500; padding: 4px 8px; font-size: 12.5px }
+  .btn.ghost:hover { background: var(--soft); color: var(--text) }
+  .btn.ghost.gefahr { color: var(--rot) }
+  .btn.ghost.gefahr:hover { background: var(--rot-soft); color: var(--rot) }
+  /* Kennzahlen-Leiste */
+  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px; padding: 9px 16px; background: var(--panel); border-bottom: 1px solid var(--line) }
+  .kpi { border: 1px solid var(--line); border-radius: 10px; padding: 9px 12px; cursor: pointer; background: var(--panel); text-align: left }
+  .kpi b { display: block; font-size: 18px; line-height: 1.1 } .kpi span { color: var(--muted); font-size: 11.5px }
+  .kpi.on { border-color: var(--text); box-shadow: inset 0 0 0 1px var(--text) }
+  .kpi.rot b { color: var(--rot) } .kpi.gelb b { color: var(--gelb) } .kpi.orange b { color: var(--orange) } .kpi.gruen b { color: var(--gruen) }
+  /* Filterzeile */
+  .filters { padding: 8px 18px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; border-bottom: 1px solid var(--line); background: var(--panel) }
+  select, input[type=search] { border: 1px solid var(--line); border-radius: 9px; padding: 6px 9px; font: inherit; font-size: 13px; background: var(--panel); color: var(--text) }
+  /* Layout */
+  .layout { display: grid; grid-template-columns: 360px 1fr; height: calc(100vh - 170px) }
+  .list { overflow: auto; border-right: 1px solid var(--line); background: var(--panel) }
+  .detail { overflow: auto; padding: 14px 18px 80px }
+  .listhead { padding: 8px 14px; font-size: 12px; color: var(--muted); border-bottom: 1px solid var(--line2); position: sticky; top: 0; background: var(--panel) }
+  /* Videoliste */
+  .vid { display: grid; grid-template-columns: 56px 1fr; gap: 10px; padding: 9px 12px; border-bottom: 1px solid var(--line2); cursor: pointer; align-items: start }
+  .vid:hover { background: var(--soft) }
+  .vid.on { background: var(--brand-soft); box-shadow: inset 3px 0 0 var(--brand) }
+  .thumb { width: 56px; height: 70px; border-radius: 8px; background: #dfe3e8 center/cover no-repeat; position: relative; flex: none }
+  .thumb.play::after { content: "▶"; position: absolute; inset: 0; display: grid; place-items: center; color: #fff; font-size: 13px; background: rgba(0,0,0,.22); border-radius: 8px }
+  .vid .t { font-weight: 650; font-size: 13px; line-height: 1.3; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical }
+  .vid .m { color: var(--muted); font-size: 12px; margin-top: 2px; display: flex; gap: 6px; flex-wrap: wrap; align-items: center }
+  .bar { display: flex; height: 6px; border-radius: 4px; overflow: hidden; background: var(--grau-soft); margin-top: 8px }
+  .bar i { display: block; height: 100% } .bar .o { background: var(--rot) } .bar .n { background: var(--orange) } .bar .b { background: var(--gruen) }
+  .legend { display: flex; gap: 10px; font-size: 11.5px; color: var(--muted); margin-top: 5px; flex-wrap: wrap }
+  .legend b { color: var(--text) }
+  .legend .o b { color: var(--rot) } .legend .n b { color: var(--orange) }
+  .tag { font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 999px; background: var(--soft); color: var(--muted); display: inline-flex; gap: 4px; align-items: center; white-space: nowrap }
+  .tag.net-facebook { color: var(--fb); background: #e8f0fe } .tag.net-instagram { color: var(--ig); background: #fbe7f0 }
+  .tag.unr { background: var(--gelb-soft); color: #7a4a00 }
+  .empty { padding: 60px 20px; text-align: center; color: var(--muted) }
+  /* Detail: Kopf */
+  .head { display: grid; grid-template-columns: 260px 1fr; gap: 18px; margin-bottom: 14px; align-items: start }
+  .preview { position: relative; background: #111; border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); min-height: 120px }
+  .preview img, .preview video { width: 100%; height: auto; max-height: 72vh; object-fit: contain; display: block; background: #000 }
+  .preview .playbtn { position: absolute; inset: 0; display: grid; place-items: center; background: rgba(0,0,0,.18); color: #fff; font-size: 44px; cursor: pointer; border: 0 }
+  .preview .playbtn span { width: 68px; height: 68px; border-radius: 50%; background: rgba(0,0,0,.55); display: grid; place-items: center; padding-left: 5px }
+  .preview .none { position: absolute; inset: 0; display: grid; place-items: center; color: #aaa; font-size: 12.5px; text-align: center; padding: 20px }
+  .preview .none.solo { position: static; aspect-ratio: 4/5 }
+  .clock { font-variant-numeric: tabular-nums; font-size: 13px; color: var(--text); font-weight: 600; text-align: right; line-height: 1.25 }
+  .clock small { display: block; color: var(--muted); font-weight: 500; font-size: 11.5px }
+  .live.fresh { background: var(--gruen-soft); color: var(--gruen); font-weight: 700 }
+  .live { display: inline-flex; align-items: center; gap: 6px } .live::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--gruen); box-shadow: 0 0 0 0 rgba(46,158,91,.5); animation: beat 2s infinite }
+  @keyframes beat { 0% { box-shadow: 0 0 0 0 rgba(46,158,91,.5) } 70% { box-shadow: 0 0 0 7px rgba(46,158,91,0) } 100% { box-shadow: 0 0 0 0 rgba(46,158,91,0) } }
+  .live.stale::before { background: var(--gelb); animation: none }
+  .tag.neu { background: var(--rot); color: #fff }
+  .cmt.neu-c { box-shadow: 0 0 0 2px var(--rot) inset, var(--shadow) }
+  .info h2 { margin: 0 0 4px; font-size: 16px; letter-spacing: -.01em }
+  .info .line { color: var(--muted); font-size: 13px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 10px }
+  .status { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 10px 0 }
+  .status div { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px }
+  .status b { display: block; font-size: 17px; line-height: 1.1 } .status span { color: var(--muted); font-size: 11.5px }
+  .status .o b { color: var(--rot) } .status .n b { color: var(--orange) } .status .b b { color: var(--gruen) }
+  .perf { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 8px; margin: 10px 0 }
+  .perf div { background: var(--soft); border-radius: 10px; padding: 7px 10px }
+  .perf b { display: block; font-size: 16px; line-height: 1.15 } .perf span { color: var(--muted); font-size: 11px }
+  .perf .hint { grid-column: 1 / -1; background: none; padding: 0; color: var(--muted); font-size: 11.5px }
+  .voice { padding: 9px 12px; border-radius: 10px; background: var(--brand-soft); color: #1b4d38; font-size: 12.5px }
+  .voice b { display: block }
+  .warn { padding: 9px 12px; border-radius: 10px; background: var(--gelb-soft); color: #7a4a00; font-size: 12.5px; margin-top: 8px }
+  details.adtext { margin: 0 0 14px } details.adtext summary { cursor: pointer; color: var(--muted); font-size: 13px; font-weight: 600 }
+  details.adtext div { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; font-size: 13px; white-space: pre-wrap; margin-top: 8px; max-height: 220px; overflow: auto }
+  /* Kommentar-Gruppen */
+  .grp { margin: 18px 0 8px; display: flex; align-items: center; gap: 10px }
+  .grp h3 { margin: 0; font-size: 14.5px } .grp .sub { color: var(--muted); font-size: 12.5px }
+  .grp button { margin-left: auto }
+  .cmt { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); margin-bottom: 10px; box-shadow: var(--shadow); border-left: 4px solid var(--gruen); overflow: hidden }
+  .cmt.gelb { border-left-color: var(--gelb) } .cmt.rot { border-left-color: var(--rot) }
+  .cmt.done { opacity: .65 } .cmt.hidden-c { background: #fafafa }
+  .cmt .row1 { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 10px 14px 0; font-size: 12.5px; color: var(--muted) }
+  .cmt .row1 b { color: var(--text); font-size: 13px }
+  .stamp { margin-left: auto; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px }
+  .stamp.offen { background: var(--rot-soft); color: var(--rot) } .stamp.nachfrage { background: var(--orange-soft); color: var(--orange) }
+  .stamp.beantwortet { background: var(--gruen-soft); color: var(--gruen) } .stamp.verborgen, .stamp.erledigt, .stamp.lesbar { background: var(--grau-soft); color: var(--muted) }
+  .cmt .txt { padding: 5px 14px 9px; font-size: 13.5px; white-space: pre-wrap; word-break: break-word }
+  .cmt .why { padding: 0 14px 10px; font-size: 11.5px; color: var(--muted); line-height: 1.4 }
+  .cmt .why.rot { color: var(--rot) } .cmt .why.gelb { color: #8a6100 }
+  .thread { border-top: 1px solid var(--line2); padding: 8px 14px 4px }
+  .reply { display: grid; grid-template-columns: 22px 1fr; gap: 8px; padding: 6px 0; font-size: 13px }
+  .reply .av { width: 22px; height: 22px; border-radius: 50%; background: var(--grau-soft); display: grid; place-items: center; font-size: 11px; font-weight: 700; color: var(--muted) }
+  .reply.us .av { background: var(--brand); color: #fff }
+  .reply .who { font-size: 12px; color: var(--muted) } .reply .who b { color: var(--text) }
+  .reply.us .body { background: var(--brand-soft); border-radius: 8px; padding: 6px 9px; margin-top: 2px }
+  .reply.last-them .body { background: var(--orange-soft); border-radius: 8px; padding: 6px 9px; margin-top: 2px }
+  .acts { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; padding: 8px 14px 12px; border-top: 1px solid var(--line2) }
+  .acts .spacer { margin-left: auto }
+  .chat { border-top: 1px solid var(--line2); padding: 10px 14px 12px; background: var(--soft) }
+  .chat textarea { width: 100%; min-height: 62px; resize: vertical; border: 1px solid var(--line); border-radius: 10px; padding: 9px 11px; font: inherit; font-size: 13.5px; line-height: 1.5; background: var(--panel); color: var(--text) }
+  .chat textarea:focus { outline: 2px solid var(--brand); outline-offset: -1px; border-color: transparent }
+  .chatrow { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; margin-top: 8px }
+  .chatrow .spacer { margin-left: auto }
+  .verlauf { border-top: 1px solid var(--line2); padding: 6px 14px 8px }
+  .verlauf summary { cursor: pointer; font-size: 12px; color: var(--muted); list-style: none }
+  .verlauf summary::-webkit-details-marker { display: none }
+  .verlauf summary::before { content: '▸ '; }
+  .verlauf[open] summary::before { content: '▾ '; }
+  .vz { font-size: 12.5px; color: var(--ink2, var(--muted)); padding: 5px 0 5px 10px; border-left: 2px solid var(--line); margin-top: 5px; white-space: pre-wrap }
+  .vz.us { border-left-color: var(--brand) }
+  .vz .vw { display: block; font-size: 11px; color: var(--muted); margin-bottom: 2px }
+  .tag.rek { opacity: .65; font-weight: 500 }
+  .postkopf { display: flex; gap: 10px; align-items: center; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 8px 12px; margin: 18px 0 8px; box-shadow: var(--shadow); position: sticky; top: 0; z-index: 3 }
+  .postkopf .pk-thumb { width: 44px; height: 44px; border-radius: 8px; background: #111 center/cover no-repeat; flex: none }
+  .postkopf .pk-t { font-weight: 650; font-size: 13px; line-height: 1.25 }
+  .postkopf .pk-m { font-size: 11.5px; color: var(--muted); display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin-top: 2px }
+  .postkopf .pk-z { margin-left: auto; text-align: right; flex: none }
+  .postkopf .pk-z b { display: block; font-size: 17px; color: var(--rot); line-height: 1 }
+  .postkopf .pk-z span { font-size: 11px; color: var(--muted) }
+  a.direkt { color: var(--brand); text-decoration: none; font-weight: 600; font-size: 12px; white-space: nowrap }
+  a.direkt:hover { text-decoration: underline }
+  .row1 b.anon { color: var(--muted); font-weight: 600 }
+  .composer { background: var(--soft); padding: 10px 14px 12px; border-top: 1px solid var(--line2) }
+  .composer textarea { width: 100%; min-height: 84px; border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; font: inherit; resize: vertical; background: var(--panel) }
+  .composer .hint { font-size: 12px; color: var(--muted); margin-bottom: 6px }
+  .composer .check { font-size: 12px; margin-top: 6px; min-height: 16px }
+  .composer .check.bad { color: var(--danger) } .composer .check.ok { color: var(--brand) }
+  .composer .row { display: flex; gap: 6px; align-items: center; margin-top: 6px; flex-wrap: wrap }
+  .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); background: #1f6f4f; color: #fff; padding: 10px 16px; border-radius: 10px; font-weight: 600; box-shadow: 0 6px 24px rgba(0,0,0,.2); opacity: 0; transition: opacity .3s; pointer-events: none; z-index: 50; max-width: 90vw }
+  .toast.bad { background: #a3312a } .toast.show { opacity: 1 }
+  .back { display: none }
+  @media (max-width: 900px) {
+    .layout { grid-template-columns: 1fr; height: auto }
+    .layout.detail-on .list { display: none } .layout:not(.detail-on) .detail { display: none }
+    .head { grid-template-columns: 1fr } .preview { max-width: 300px } .back { display: inline-flex; margin-bottom: 10px }
+    .status { grid-template-columns: repeat(2, 1fr) }
+  }
+</style>
+</head>
+<body>
+<div class="top">
+  <div><h1>Kommentare</h1></div>
+  <div class="grow"></div>
+  <div class="clock" id="clock">–<small>–</small></div>
+  <span class="pill live" id="livePill">–</span>
+  <span class="pill" id="scanPill">–</span>
+  <button class="btn" id="btnScan">Neu scannen</button>
+  <a class="btn" href="https://os.leichtkraut.de/os">Zum OS</a>
+</div>
+<div class="kpis" id="kpis">
+  <button class="kpi rot on" data-f="offen"><b id="kOffen">0</b><span>Unbeantwortet</span></button>
+  <button class="kpi orange" data-f="nachfrage"><b id="kNach">0</b><span>Warten auf Antwort</span></button>
+</div>
+<div class="filters">
+  <select id="selPage"><option value="">Alle Seiten</option></select>
+  <select id="selNet"><option value="">Facebook + Instagram</option><option value="facebook">Nur Facebook</option><option value="instagram">Nur Instagram</option></select>
+  <select id="selQuelle"><option value="">Alle Posts</option><option value="aktiv">Nur aktive Anzeigen</option><option value="pausiert">Pausierte Anzeigen</option><option value="archiviert">Archivierte</option><option value="abgelehnt">Abgelehnte</option><option value="organisch">Organische Posts</option></select>
+  <select id="selExtra"><option value="">Ohne Sonderfälle</option><option value="verborgen">Verborgene</option><option value="erledigt">Erledigte</option><option value="lesbar">Nur lesbare (gelöschte Medien)</option><option value="gesperrt">Nur nicht bedienbare</option></select>
+  <span class="grow"></span>
+  <input type="search" id="q" placeholder="Suchen in Kommentaren, Anzeigen …" style="min-width:240px">
+</div>
+<div class="layout" id="layout">
+  <div class="list" id="list"><div class="empty">Lade …</div></div>
+  <div class="detail" id="detail"><div class="empty">Wähle links einen Post.</div></div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+(function () {
+  var D = { videos: [], stimmen: {}, pages: [], scan: {} };
+  var version = null, bekannt = null, neuIds = {}, serverOffset = 0, pruefeGerade = false;
+  function tick() {
+    var n = new Date(Date.now() + serverOffset);
+    $('#clock').innerHTML = n.toLocaleTimeString('de-DE') + '<small>' + n.toLocaleDateString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric' }) + '</small>';
+    var lp = $('#livePill'); var lc = D.liveCheckAt ? (Date.now() - Date.parse(D.liveCheckAt)) / 1000 : null;
+    lp.className = 'pill live' + (lc == null || lc > 240 ? ' stale' : '') + (lc != null && lc < 6 ? ' fresh' : '');
+    lp.textContent = pruefeGerade ? 'Prüfe gerade bei Meta …' : (lc == null ? 'Live-Check startet …' : (lc < 180 ? 'Live geprüft · ' + new Date(Date.parse(D.liveCheckAt)).toLocaleTimeString('de-DE') : 'Live · geprüft vor ' + Math.round(lc / 60) + ' Min'));
+  }
+  setInterval(tick, 1000);
+  var sel = null, filter = 'offen', page = '', net = '', quelle = '', extra = '', q = '', showAnswered = {};
+  try { filter = localStorage.getItem('lk-kom-filter') || 'offen'; } catch (e) {}
+  if (filter === 'alle' || filter === 'beantwortet') filter = 'offen';   // Start immer mit dem, was Arbeit macht
+  var $ = function (s) { return document.querySelector(s); };
+  var entwuerfe = {};        // getippter oder vorgeschlagener Text je Kommentar
+  var geradeGepostet = {};   // Kommentar-ID -> Zeitpunkt, verhindert Wiederauftauchen
+  var letzteAnsicht = null;  // fuer welchen Post wurde zuletzt gezeichnet
+  var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
+  function toast(msg, bad) { var t = $('#toast'); t.textContent = msg; t.className = 'toast show' + (bad ? ' bad' : ''); clearTimeout(t._h); t._h = setTimeout(function () { t.className = 'toast'; }, 3800); }
+  function rel(iso) {
+    if (!iso) return ''; var d = (Date.now() - Date.parse(iso)) / 1000;
+    if (d < 60) return 'gerade eben'; if (d < 3600) return 'vor ' + Math.round(d / 60) + ' Min'; if (d < 86400) return 'vor ' + Math.round(d / 3600) + ' Std';
+    if (d < 86400 * 14) return 'vor ' + Math.round(d / 86400) + ' Tagen';
+    return 'am ' + new Date(iso).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: '2-digit' });
+  }
+  function abs(iso) { return iso ? new Date(iso).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : ''; }
+  function api(path, body) {
+    return fetch(path, body ? { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) } : {}).then(function (r) {
+      return r.json().catch(function () { return {}; }).then(function (j) { if (!r.ok) throw new Error(j.error || ('HTTP ' + r.status)); return j; });
+    });
+  }
+  function netLabel(n) { return n === 'instagram' ? 'Instagram' : 'Facebook'; }
+  function k(n) { n = Number(n) || 0; if (n >= 1e6) return (n / 1e6).toFixed(1).replace('.', ',') + ' Mio'; if (n >= 1e4) return Math.round(n / 1e3) + 'k'; if (n >= 1e3) return (n / 1e3).toFixed(1).replace('.', ',') + 'k'; return String(n); }
+  function eur(n) { return (Number(n) || 0).toLocaleString('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }); }
+  var _ro = {};
+  function ro(c) { return !!_ro[c.id]; }
+
+  // ── Status eines Kommentars (eine Wahrheit für Liste, Zähler und Karte) ──
+  function status(c) {
+    if (c.vonUns) return 'eigen';
+    if (ro(c)) return 'lesbar';
+    if (c.hidden) return 'verborgen';
+    if (c.erledigt) return 'erledigt';
+    if (c.nachfrage) return 'nachfrage';
+    if (c.beantwortet) return 'beantwortet';
+    return 'offen';
+  }
+  function braucht(c) { var s = status(c); return s === 'offen' || s === 'nachfrage'; }
+  function cmtPasst(c) {
+    var s = status(c); if (s === 'eigen') return false;
+    if (extra === 'verborgen') return s === 'verborgen';
+    if (extra === 'erledigt') return s === 'erledigt';
+    if (extra === 'lesbar') return s === 'lesbar';
+    if (s === 'verborgen' || s === 'erledigt' || s === 'lesbar') return false;
+    if (filter === 'offen') return braucht(c);
+    if (filter === 'nachfrage') return s === 'nachfrage';
+    if (filter === 'rot') return c.ampel === 'rot' && braucht(c);
+    if (filter === 'gelb') return c.ampel === 'gelb' && braucht(c);
+    if (filter === 'beantwortet') return s === 'beantwortet';
+    return true;
+  }
+  function vidPasst(v) {
+    // Was wir nicht bedienen koennen, gehoert nicht in die Arbeitsliste:
+    // gesperrte Seiten und Instagram-Konten ohne Verknuepfung. Ueber die
+    // Auswahl "Auch nicht bedienbare" bleiben sie einsehbar (Samuel, 14.09.).
+    if (extra !== 'gesperrt' && (v.gesperrt || v.igWarnung)) return false;
+    if (extra === 'gesperrt' && !(v.gesperrt || v.igWarnung)) return false;
+    if (page && v.pageId !== page) return false;
+    if (net && v.netz !== net) return false;
+    if (quelle && v.quelle !== quelle) return false;
+    if (q) {
+      var s = (v.adset + ' ' + v.campaign + ' ' + v.text + ' ' + v.pageName + ' ' + v.kommentare.map(function (c) { return (c.wer || '') + ' ' + c.text; }).join(' ')).toLowerCase();
+      if (s.indexOf(q) < 0) return false;
+    }
+    if (filter === 'alle' && !extra) return true;
+    return v.kommentare.some(cmtPasst);
+  }
+  function zaehle(v) {
+    var o = 0, n = 0, b = 0, g = 0;
+    v.kommentare.forEach(function (c) { var s = status(c); if (s === 'eigen' || s === 'lesbar') return; g++; if (s === 'offen') o++; else if (s === 'nachfrage') n++; else if (s === 'beantwortet') b++; });
+    return { offen: o, nachfrage: n, beantwortet: b, gesamt: g, braucht: o + n };
+  }
+
+  // ── Liste ───────────────────────────────────────────────────────────────
+  function renderList() {
+    var vs = D.videos.filter(vidPasst);
+    vs.sort(function (a, b) { var za = zaehle(a), zb = zaehle(b); return (zb.braucht - za.braucht) || String(b.letzteAktivitaet || '').localeCompare(String(a.letzteAktivitaet || '')); });
+    var el = $('#list');
+    if (!vs.length) { el.innerHTML = '<div class="empty">' + (D.videos.length ? 'Nichts in dieser Ansicht.' : (D.scan.laeuft ? 'Der erste Scan läuft gerade …' : 'Noch kein Scan.')) + '</div>'; return; }
+    var offenGesamt = 0;
+    D.videos.forEach(function (v) { if (v.gesperrt || v.igWarnung) return; v.kommentare.forEach(function (c) { var st = status(c); if (st === 'offen' || st === 'nachfrage') offenGesamt++; }); });
+    var html = '<div class="listhead">' + vs.length + ' Posts · sortiert nach offenen Kommentaren</div>' +
+      '<div class="vid' + (sel === '*' ? ' on' : '') + '" data-k="*">' +
+        '<div class="thumb" style="display:grid;place-items:center;font-size:20px;background:var(--soft)">📥</div>' +
+        '<div><div class="t">Alle offenen Kommentare</div>' +
+        '<div class="m"><span>über alle Posts hinweg, mit Post-Kopf</span></div>' +
+        '<div class="legend"><span class="o"><b>' + offenGesamt + '</b> braucht Antwort</span></div>' +
+        '</div></div>';
+    html += vs.map(function (v) {
+      var z = zaehle(v), tot = Math.max(1, z.gesamt);
+      var nNeu = v.kommentare.filter(function (c) { return neuIds[c.id] && Date.now() - neuIds[c.id] < 30 * 60000; }).length;
+      return '<div class="vid' + (sel === v.key ? ' on' : '') + '" data-k="' + esc(v.key) + '">' +
+        '<div class="thumb' + (v.media.type === 'video' ? ' play' : '') + '" style="' + (v.media.thumb ? 'background-image:url(' + esc(v.media.thumb) + ')' : '') + '"></div>' +
+        '<div><div class="t">' + esc(v.adset || (v.quelle === 'organisch' ? 'Organischer Post' : v.id)) + '</div>' +
+        '<div class="m">' + (nNeu ? '<span class="tag neu">' + nNeu + ' NEU</span>' : '') + '<span>' + esc(v.pageName) + '</span><span class="tag net-' + v.netz + '">' + netLabel(v.netz) + '</span>' + (v.quelle && v.quelle !== 'aktiv' ? '<span class="tag">' + esc(v.quelle) + '</span>' : '') + (v.unerreichbar ? '<span class="tag unr">nur lesbar</span>' : '') + '</div>' +
+        (v.insights && v.insights.impressions ? '<div class="m" style="margin-top:4px" title="Impressionen laut Meta, gesamte Laufzeit">👁 ' + k(v.insights.impressions) + '</div>' : '') +
+        (v.gesperrt ? '<div class="m" style="margin-top:4px;color:var(--rot)">' + esc(v.gesperrt) + '</div>' : '') +
+        (v.media && v.media.permalink ? '<div class="m" style="margin-top:4px"><a class="direkt" href="' + esc(v.media.permalink) + '" target="_blank" rel="noopener" onclick="event.stopPropagation()">Post bei ' + netLabel(v.netz) + ' öffnen ↗</a></div>' : '') +
+        '<div class="legend"><span class="o"><b>' + z.braucht + '</b> braucht Antwort</span></div>' +
+        '</div></div>';
+    }).join('');
+    var listStand = el.scrollTop;
+    el.innerHTML = html;
+    // Nach dem ersten Zeichnen nicht mehr einblenden, sonst flackert die Liste
+    // bei jeder Hintergrundaktualisierung und nach jedem Senden.
+    el.classList.add('noanim');
+    if (listStand) el.scrollTop = listStand;
+    el.querySelectorAll('.vid').forEach(function (n) { n.addEventListener('click', function () { sel = n.getAttribute('data-k'); $('#layout').classList.add('detail-on'); renderList(); renderDetail(); }); });
+  }
+
+  // ── Detail ──────────────────────────────────────────────────────────────
+  function video() { return D.videos.find(function (v) { return v.key === sel; }); }
+  // Im Sammelmodus gehoert jede Karte zu einem anderen Post, deshalb den Post
+  // ueber den Kommentar suchen statt ueber die Auswahl links.
+  function postVon(c) { return D.videos.find(function (v) { return v.kommentare.some(function (x) { return x.id === c.id; }); }); }
+  function stimmeVon(v) { v = v || {}; return v.stimme || (D.stimmen || {})[v.pageId] || { wer: v.pageName || 'die Seite', stimme: 'wir', anrede: 'du', hinweis: '' }; }
+  function renderDetail() {
+    var v = video(); var el = $('#detail');
+    var scrollStand = el.scrollTop;
+    // Nur beim Wechsel auf einen anderen Post einblenden. Sonst zappelt bei
+    // jeder Hintergrundaktualisierung die ganze Liste (Samuel, 06.09.).
+    if (letzteAnsicht === sel) el.classList.add('noanim'); else el.classList.remove('noanim');
+    letzteAnsicht = sel;
+    if (sel === '*') { renderAlle(el, scrollStand); return; }
+    if (!v) { el.innerHTML = '<div class="empty">Wähle links einen Post.</div>'; return; }
+    var st = stimmeVon(v), z = zaehle(v);
+    var alle = v.kommentare.filter(function (c) { return !c.vonUns; });
+    var sichtbar = alle.filter(cmtPasst);
+    var brauchtL = sichtbar.filter(braucht).sort(function (a, b) { return String(b.zeit).localeCompare(String(a.zeit)); });
+    // Beantwortete immer zeigen (eingeklappt), unabhaengig vom Filter oben: man sieht so pro Post, was schon erledigt ist.
+    var beantL = (extra ? sichtbar : alle).filter(function (c) { return status(c) === 'beantwortet'; }).sort(function (a, b) { return String(b.zeit).localeCompare(String(a.zeit)); });
+    var restL = sichtbar.filter(function (c) { return !braucht(c) && status(c) !== 'beantwortet'; });
+    var eigene = v.kommentare.filter(function (c) { return c.vonUns; });
+    var prev;
+    if (v.media.thumb || v.media.video) {
+      prev = (v.media.thumb ? '<img src="' + esc(v.media.thumb) + '" alt="" onerror="this.style.display=\'none\'">' : '') +
+        (v.media.video ? '<button class="playbtn" id="playBtn" title="Video abspielen"><span>▶</span></button>' : '');
+    } else prev = '<div class="none solo">Keine Vorschau von Meta erhalten' + (v.media.permalink ? '<br><a href="' + esc(v.media.permalink) + '" target="_blank" rel="noopener">Bei ' + netLabel(v.netz) + ' öffnen</a>' : '') + '</div>';
+    el.innerHTML =
+      '<button class="btn sm back" id="btnBack">← Zur Liste</button>' +
+      '<div class="head"><div class="preview" id="preview">' + prev + '</div>' +
+      '<div class="info"><h2>' + esc(v.adset || (v.quelle === 'organisch' ? 'Organischer Post' : v.id)) + '</h2>' +
+      '<div class="line"><b>' + esc(v.pageName) + '</b>' + (v.igOwner ? '<span>@' + esc(v.igOwner) + (v.igSeitenKonto ? ' (automatisches Seiten-Konto)' : '') + '</span>' : '') + '<span class="tag net-' + v.netz + '">' + netLabel(v.netz) + '</span>' + '<span class="tag">' + esc(v.quelle === 'organisch' ? 'organisch' : v.ads.length + ' Anzeige' + (v.ads.length === 1 ? '' : 'n') + ', ' + v.quelle) + '</span>' + (v.campaign ? '<span>' + esc(v.campaign) + '</span>' : '') + '</div>' +
+      '<div class="line"><span>Post ' + (v.createdAt ? 'vom ' + abs(v.createdAt) : '') + '</span>' + (v.media.permalink ? '<a href="' + esc(v.media.permalink) + '" target="_blank" rel="noopener">Bei ' + netLabel(v.netz) + ' öffnen ↗</a>' : '') + '</div>' +
+      '<div class="status"><div class="o"><b>' + z.braucht + '</b><span>braucht Antwort</span></div>' + (v.insights && v.insights.impressions ? '<div><b>' + k(v.insights.impressions) + '</b><span>Impressionen</span></div>' : '') + '</div>' +
+      (v.unerreichbar ? '<div class="warn"><b>Nur lesbar:</b> ' + esc(v.unerreichbar) + '</div>' : '') +
+      (v.igWarnung ? '<div class="warn"><b>Achtung:</b> ' + esc(v.igWarnung) + '</div>' : '') +
+      (v.gesperrt ? '<div class="warn"><b>Gesperrt:</b> ' + esc(v.gesperrt) + '</div>' : '') +
+      '</div></div>' +
+      (v.text ? '<details class="adtext"><summary>Anzeigentext anzeigen</summary><div>' + esc(v.text) + '</div></details>' : '') +
+      grp('Braucht Antwort', brauchtL, 'Die Person wartet. Nachfragen sind orange markiert.', true) +
+      (filter === 'beantwortet' || extra ? grp('Beantwortet', beantL, 'Unsere Antwort ist die letzte im Strang.', true) : (beantL.length ? '<div class="grp"><span class="sub">' + beantL.length + ' beantwortete Kommentare ausgeblendet · über die Kachel „Beantwortet" einsehbar</span></div>' : '')) +
+      (restL.length ? grp('Verborgen, erledigt, nur lesbar', restL, '', true) : '') +
+      (eigene.length && filter === 'alle' ? '<div class="grp"><h3>Eigene Kommentare direkt unter dem Post</h3><span class="sub">' + eigene.length + '</span></div>' + eigene.map(function (c) { return '<div class="reply us"><div class="av">' + esc(initial(c.wer || 'W')) + '</div><div><div class="who"><b>' + esc(c.wer || 'Wir') + '</b> · ' + rel(c.zeit) + '</div><div class="body">' + esc(c.text) + '</div></div></div>'; }).join('') : '');
+    var b = $('#btnBack'); if (b) b.addEventListener('click', function () { $('#layout').classList.remove('detail-on'); });
+    var pb = $('#playBtn'); if (pb) pb.addEventListener('click', function () { playVideo(v); });
+    var ta = $('#toggleAnswered'); if (ta) ta.addEventListener('click', function () { showAnswered[v.key] = !showAnswered[v.key]; renderDetail(); });
+    el.querySelectorAll('[data-act]').forEach(function (n) { n.addEventListener('click', onAct); });
+    var chats = [].slice.call(el.querySelectorAll('.chat'));
+    chats.forEach(bindeChat);
+    beobachteChats(el);
+    if (scrollStand) el.scrollTop = scrollStand;
+  }
+  // Alle offenen Kommentare am Stueck, jeweils mit dem Post darueber
+  // (Samuel, 07.09.). Spart das Durchklicken Post fuer Post.
+  function renderAlle(el, scrollStand) {
+    var posten = D.videos.filter(vidPasst).map(function (v) {
+      return { v: v, offen: v.kommentare.filter(function (c) { return !c.vonUns && cmtPasst(c) && braucht(c); })
+        .sort(function (a, b) { return String(b.zeit).localeCompare(String(a.zeit)); }) };
+    }).filter(function (x) { return x.offen.length; })
+      .sort(function (a, b) { return String(b.v.letzteAktivitaet || '').localeCompare(String(a.v.letzteAktivitaet || '')); });
+
+    var summe = posten.reduce(function (n, x) { return n + x.offen.length; }, 0);
+    if (!summe) { el.innerHTML = '<div class="empty">Nichts offen in dieser Ansicht.</div>'; return; }
+
+    el.innerHTML = '<div class="grp"><h3>Alle offenen Kommentare</h3><span class="sub">' + summe + ' in ' + posten.length + ' Posts · neueste zuerst</span></div>' +
+      posten.map(function (x) {
+        var v = x.v;
+        return '<div class="postkopf" data-open="' + esc(v.key) + '">' +
+          '<div class="pk-thumb" style="' + (v.media && v.media.thumb ? 'background-image:url(' + esc(v.media.thumb) + ')' : '') + '"></div>' +
+          '<div style="min-width:0"><div class="pk-t">' + esc(v.adset || (v.quelle === 'organisch' ? 'Organischer Post' : v.id)) + '</div>' +
+          '<div class="pk-m"><b>' + esc(v.pageName) + '</b><span class="tag net-' + v.netz + '">' + netLabel(v.netz) + '</span>' +
+          (v.insights && v.insights.impressions ? '<span>👁 ' + k(v.insights.impressions) + '</span>' : '') +
+          (v.media && v.media.permalink ? '<a class="direkt" href="' + esc(v.media.permalink) + '" target="_blank" rel="noopener">Beitrag ↗</a>' : '') +
+          '</div></div>' +
+          '<div class="pk-z"><b>' + x.offen.length + '</b><span>offen</span></div></div>' +
+          x.offen.map(renderCmt).join('');
+      }).join('');
+
+    el.querySelectorAll('[data-act]').forEach(function (n) { n.addEventListener('click', onAct); });
+    el.querySelectorAll('.postkopf').forEach(function (n) {
+      n.addEventListener('click', function (ev) {
+        if (ev.target.closest('a')) return;
+        sel = n.getAttribute('data-open'); $('#layout').classList.add('detail-on'); renderList(); renderDetail();
+      });
+    });
+    var chats = [].slice.call(el.querySelectorAll('.chat'));
+    chats.forEach(bindeChat);
+    beobachteChats(el);
+    if (scrollStand) el.scrollTop = scrollStand;
+  }
+
+  // Vorschlaege erst holen, wenn die Karte in Sichtweite kommt. Bei 100+ offenen
+  // Kommentaren waeren sonst 100 KI-Aufrufe auf einmal faellig (Samuel, 07.09.).
+  var chatBeobachter = null;
+  function beobachteChats(el) {
+    if (chatBeobachter) { chatBeobachter.disconnect(); chatBeobachter = null; }
+    var alle = [].slice.call(el.querySelectorAll('.chat')).map(function (n) { return n.getAttribute('data-cid'); });
+    if (!('IntersectionObserver' in window)) { holeVorschlaege(alle.slice(0, 12)); return; }
+    chatBeobachter = new IntersectionObserver(function (eintraege) {
+      var faellig = [];
+      eintraege.forEach(function (e) {
+        if (!e.isIntersecting) return;
+        chatBeobachter.unobserve(e.target);
+        faellig.push(e.target.getAttribute('data-cid'));
+      });
+      if (faellig.length) holeVorschlaege(faellig);
+    }, { root: el, rootMargin: '400px 0px' });
+    el.querySelectorAll('.chat').forEach(function (n) { chatBeobachter.observe(n); });
+  }
+
+  function playVideo(v) {
+    var box = $('#preview'); if (!box) return;
+    box.innerHTML = '<video controls autoplay playsinline preload="auto" poster="' + esc(v.media.thumb || '') + '" src="' + esc(v.media.video) + '"></video>';
+    var vid = box.querySelector('video');
+    vid.addEventListener('error', function () {
+      box.innerHTML = (v.media.thumb ? '<img src="' + esc(v.media.thumb) + '" alt="">' : '') + '<div class="none" style="background:rgba(0,0,0,.55)">Meta liefert das Video hier nicht aus.' + (v.media.permalink ? '<br><a href="' + esc(v.media.permalink) + '" target="_blank" rel="noopener" style="color:#fff">Bei ' + netLabel(v.netz) + ' ansehen ↗</a>' : '') + '</div>';
+    });
+  }
+  function perf(v) {
+    var i = v.insights, p = v.post;
+    if (!i && !p) return '';
+    var h = '<div class="perf">';
+    if (i) h += '<div><b>' + k(i.impressions) + '</b><span>Impressionen</span></div><div><b>' + k(i.reach) + '</b><span>Reichweite</span></div><div><b>' + k(i.reactions) + '</b><span>Reaktionen</span></div><div><b>' + k(i.comments) + '</b><span>Kommentar-Ereignisse (Ads, inkl. Antworten und Gelöschte)</span></div><div><b>' + k(i.shares) + '</b><span>Geteilt</span></div><div><b>' + k(i.linkClicks) + '</b><span>Link-Klicks</span></div><div><b>' + eur(i.spend) + '</b><span>Ausgaben</span></div>';
+    if (p) h += '<div><b>' + k(p.comments) + '</b><span>Kommentare am Post (oberste Ebene)</span></div><div><b>' + k(p.reactions) + '</b><span>' + (v.netz === 'instagram' ? 'Likes am Beitrag' : 'Reaktionen am Post') + '</span></div>' + (p.shares != null ? '<div><b>' + k(p.shares) + '</b><span>Shares am Post</span></div>' : '');
+    h += '<div class="hint">' + (i ? 'Anzeigen-Statistik über ' + i.ads + ' Anzeige' + (i.ads === 1 ? '' : 'n') + ', gesamte Laufzeit' + (D.insightsAt ? ', Stand ' + new Date(Date.parse(D.insightsAt)).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }) : '') + '. ' : '') + (p ? 'Zahlen am Post direkt von ' + netLabel(v.netz) + '.' : '') + '</div></div>';
+    return h;
+  }
+  function initial(s) { return String(s || '?').replace(/^@/, '').slice(0, 1).toUpperCase(); }
+  function grp(title, list, sub, open, kind) {
+    var h = '<div class="grp"><h3>' + title + '</h3><span class="sub">' + list.length + (sub ? ' · ' + sub : '') + '</span>' +
+      (kind === 'answered' && list.length ? '<button class="btn sm" id="toggleAnswered">' + (open ? 'Einklappen' : 'Anzeigen') + '</button>' : '') + '</div>';
+    if (!list.length) return h + '<div class="empty" style="padding:14px">Nichts in dieser Gruppe.</div>';
+    if (!open) return h;
+    return h + list.map(renderCmt).join('');
+  }
+  function warum(c) {
+    if (c.ampel === 'rot') return 'Rot · erst Rücksprache mit Samuel';
+    if (c.ampel === 'gelb') return 'Gelb · mit Vorsicht antworten';
+    return '';
+  }
+  // Der Strang als flache Liste: Kommentar plus alle Antworten.
+  function strang(c) {
+    var l = [{ wer: c.wer, werQuelle: c.werQuelle, text: c.text, zeit: c.zeit, vonUns: false, hidden: c.hidden, permalink: c.permalink }];
+    (c.antworten || []).forEach(function (r) { l.push(r); });
+    return l;
+  }
+  function renderCmt(c) {
+    var s = status(c), v = (sel === '*' ? postVon(c) : video()) || postVon(c) || {}, st = stimmeVon(v);
+    var l = strang(c);
+    var offen = braucht(c);
+    // Bei offenen Faellen zeigen wir die juengste Nachricht der Person, denn auf
+    // die soll geantwortet werden. Bei bereits beantworteten den Ursprungs-
+    // kommentar, sonst stuende dort unsere eigene Antwort als Haupttext.
+    var n = offen ? l[l.length - 1] : l[0];
+    var vorher = offen ? l.slice(0, -1) : l.slice(1);
+    var name = c.wer
+      ? '<b' + (c.werQuelle === 'markierung' ? ' title="Name aus der Markierung im Strang rekonstruiert, nicht von Meta"' : '') + '>' + esc(c.netz === 'instagram' ? '@' + c.wer : c.wer) + '</b>'
+        + (c.werQuelle === 'markierung' ? '<span class="tag rek">rekonstruiert</span>' : '')
+      : '<b class="anon" title="Meta gibt den Namen nicht heraus und es gibt keine Markierung im Strang">' + (c.netz === 'instagram' ? 'Instagram-Nutzerin' : 'Facebook-Nutzerin') + '</b>';
+    var stampTxt = { offen: 'Offen', nachfrage: 'Nachfrage', beantwortet: 'Beantwortet', verborgen: 'Verborgen', erledigt: 'Erledigt', lesbar: 'Nur lesbar' }[s];
+    var istNeu = neuIds[c.id] && Date.now() - neuIds[c.id] < 30 * 60000;
+
+    var verlauf = vorher.length
+      ? '<details class="verlauf"><summary>' + vorher.length + ' vorherige Nachricht' + (vorher.length === 1 ? '' : 'en') + ' anzeigen</summary>'
+        + vorher.map(function (r) {
+            return '<div class="vz' + (r.vonUns ? ' us' : '') + '"><span class="vw">' + esc(r.vonUns ? (r.wer || st.wer) : (r.wer || 'Nutzerin')) + ' · ' + rel(r.zeit) + '</span>' + esc(r.text || '') + '</div>';
+          }).join('')
+        + '</details>'
+      : '';
+
+    var chat = (offen && s !== 'lesbar')
+      ? '<div class="chat" data-cid="' + esc(c.id) + '">' +
+          '<textarea id="ta-' + esc(c.id) + '" placeholder="Vorschlag wird geschrieben …">' + esc(entwuerfe[c.id] || '') + '</textarea>' +
+          '<div class="check" id="chk-' + esc(c.id) + '"></div>' +
+          '<div class="chatrow">' +
+            '<button class="btn cta" data-send="' + esc(c.id) + '">Abschicken</button>' +
+            '<button class="btn ghost" data-act="vorschlag" data-id="' + esc(c.id) + '">Anderer Vorschlag</button>' +
+            '<span class="spacer"></span>' +
+            '<button class="btn ghost" data-act="verbergen" data-id="' + esc(c.id) + '" data-h="' + (c.hidden ? '0' : '1') + '">' + (c.hidden ? 'Einblenden' : 'Verbergen') + '</button>' +
+            '<button class="btn ghost" data-act="erledigt" data-id="' + esc(c.id) + '" data-e="' + (c.erledigt ? '0' : '1') + '">' + (c.erledigt ? 'Wieder öffnen' : 'Erledigt') + '</button>' +
+            '<button class="btn ghost gefahr" data-act="loeschen" data-id="' + esc(c.id) + '">Löschen</button>' +
+          '</div></div>'
+      : (s === 'lesbar' ? '' :
+          '<div class="acts"><button class="btn sm" data-act="antworten" data-id="' + esc(c.id) + '">Noch einmal antworten</button>' +
+          '<span class="spacer"></span>' +
+          '<button class="btn ghost" data-act="erledigt" data-id="' + esc(c.id) + '" data-e="' + (c.erledigt ? '0' : '1') + '">' + (c.erledigt ? 'Wieder öffnen' : 'Erledigt') + '</button>' +
+          '<button class="btn ghost gefahr" data-act="loeschen" data-id="' + esc(c.id) + '">Löschen</button></div>' +
+          '<div class="composer" id="comp-' + esc(c.id) + '" hidden></div>');
+
+    return '<div class="cmt ' + c.ampel + (c.erledigt ? ' done' : '') + (c.hidden ? ' hidden-c' : '') + (istNeu ? ' neu-c' : '') + '" id="c-' + esc(c.id) + '">' +
+      '<div class="row1">' + (istNeu ? '<span class="tag neu">NEU</span>' : '') + name +
+        '<span title="' + abs(n.zeit) + '">' + rel(n.zeit) + '</span>' +
+        (c.likes ? '<span>' + c.likes + ' ♥</span>' : '') +
+        (n.permalink || c.permalink || (v.media && v.media.permalink)
+          ? '<a class="direkt" href="' + esc(n.permalink || c.permalink || v.media.permalink) + '" target="_blank" rel="noopener" title="Öffnet genau diesen Kommentar bei ' + netLabel(c.netz) + ', dort kannst du mit dem echten Antworten-Knopf antworten">'
+            + (n.permalink || c.permalink ? 'Direkt zum Kommentar ↗' : 'Zum Beitrag ↗') + '</a>'
+          : '') +
+        '<span class="tag net-' + c.netz + '">' + netLabel(c.netz) + '</span>' +
+        '<span class="stamp ' + s + '">' + stampTxt + '</span></div>' +
+      '<div class="txt">' + (n.text ? esc(n.text) : '<i style="color:var(--muted)">nur Markierung oder Emoji, kein Text</i>') + '</div>' +
+      (warum(c) && offen ? '<div class="why ' + c.ampel + '">' + warum(c) + '</div>' : '') +
+      verlauf + chat + '</div>';
+  }
+
+  // Ein Antwortfeld scharfschalten: Selbstpruefung beim Tippen, Abschicken.
+  function bindeChat(box) {
+    var id = box.getAttribute('data-cid');
+    var ta = box.querySelector('textarea'), chk = box.querySelector('.check');
+    var send = box.querySelector('[data-send]');
+    function upd() {
+      entwuerfe[id] = ta.value;
+      var p = pruefe(ta.value);
+      chk.className = 'check ' + (p.length ? 'bad' : (ta.value.trim() ? 'ok' : ''));
+      chk.textContent = p.length ? 'Bitte korrigieren: ' + p.join(', ') : (ta.value.trim() ? 'Selbstprüfung bestanden' : '');
+    }
+    ta.addEventListener('input', upd); upd();
+    send.addEventListener('click', function () {
+      var t = ta.value.trim(); if (!t) { toast('Noch kein Text', true); return; }
+      var p = pruefe(t); if (p.length) { toast('Selbstprüfung: ' + p.join(', '), true); return; }
+      send.disabled = true; send.textContent = 'Sende …';
+      api('/api/meta/kommentare/' + encodeURIComponent(id) + '/antwort', { text: t })
+        .then(function (j) {
+          delete entwuerfe[id];
+          geradeGepostet[id] = Date.now();
+          if (j.kommentar) D.videos.forEach(function (v) { v.kommentare = v.kommentare.map(function (x) { return x.id === j.kommentar.id ? j.kommentar : x; }); });
+          zaehler(); renderList();
+          box.innerHTML = '<div class="fertigmeld">✓ Gepostet' + (j.geliked ? ' und mit Daumen hoch markiert' : '') + '</div>';
+          abschliessen(id);
+        })
+        .catch(function (e) {
+          send.disabled = false; send.textContent = 'Abschicken';
+          if (/bereits geantwortet|wortgleich/i.test(e.message)) {
+            if (confirm(e.message + '\n\nTrotzdem senden?')) {
+              send.disabled = true; send.textContent = 'Sende …';
+              api('/api/meta/kommentare/' + encodeURIComponent(id) + '/antwort', { text: t, trotzdem: true })
+                .then(function (j) {
+                  delete entwuerfe[id]; geradeGepostet[id] = Date.now();
+                  if (j.kommentar) D.videos.forEach(function (v) { v.kommentare = v.kommentare.map(function (x) { return x.id === j.kommentar.id ? j.kommentar : x; }); });
+                  zaehler(); renderList();
+                  box.innerHTML = '<div class="fertigmeld">✓ Gepostet' + (j.geliked ? ' und mit Daumen hoch markiert' : '') + '</div>';
+                  abschliessen(id);
+                })
+                .catch(function (e2) { toast(e2.message, true); send.disabled = false; send.textContent = 'Abschicken'; });
+            }
+            return;
+          }
+          toast(e.message, true);
+        });
+    });
+  }
+
+  // Karte nach dem Senden weich zusammenfahren und entfernen, statt die ganze
+  // Ansicht neu zu zeichnen. Das war die Ursache fuer das Flackern (Samuel, 06.09.).
+  function abschliessen(id) {
+    var karte = document.getElementById('c-' + id);
+    if (!karte) return;
+    karte.style.maxHeight = karte.scrollHeight + 'px';
+    setTimeout(function () {
+      karte.classList.add('fertig');
+      setTimeout(function () { if (karte.parentNode) karte.parentNode.removeChild(karte); }, 460);
+    }, 620);
+  }
+
+  // Vorschlaege im Hintergrund holen, drei gleichzeitig, damit die Seite steht.
+  function holeVorschlaege(ids) {
+    var i = 0;
+    function naechster() {
+      if (i >= ids.length) return;
+      var id = ids[i++];
+      var ta = document.getElementById('ta-' + id);
+      if (!ta || ta.value.trim()) { naechster(); return; }
+      api('/api/meta/kommentare/' + encodeURIComponent(id) + '/vorschlag', {}).then(function (j) {
+        entwuerfe[id] = entwuerfe[id] || j.text;
+        var t = document.getElementById('ta-' + id);
+        if (t && !t.value.trim()) { t.value = j.text; t.dispatchEvent(new Event('input')); }
+      }).catch(function () {
+        var t = document.getElementById('ta-' + id);
+        if (t) t.placeholder = 'Kein Vorschlag erhalten. Du kannst frei schreiben.';
+      }).then(naechster, naechster);
+    }
+    for (var k = 0; k < 3; k++) naechster();
+  }
+
+  // ── Aktionen ────────────────────────────────────────────────────────────
+  function pruefe(t) {
+    var p = [];
+    if (/—/.test(t) || /\s–\s/.test(t)) p.push('Gedankenstrich');
+    var e = (t.match(/\p{Extended_Pictographic}/gu) || []).length; if (e > 2) p.push(e + ' Emojis (max. 2)');
+    if (/\d\s?%|prozent/i.test(t)) p.push('Prozentzahl');
+    if (/zwei tropfen|2 tropfen/i.test(t)) p.push('„zwei Tropfen"');
+    if (/\b(rabatt\w*|gutschein\w*|coupon|aktion\w*|angebot\w*|gratis|kostenlos|spar(e|st|en)|code)\b/i.test(t)) p.push('Aktion oder Rabatt');
+    if (/was gerade läuft|gerade gibt|aktuell läuft|derzeit läuft/i.test(t)) p.push('Anspielung auf eine Aktion');
+    if (/\d+\s?(euro|eur|€)/i.test(t)) p.push('Preis in Zahlen');
+    return p;
+  }
+  function openComposer(id, text) {
+    var box = document.getElementById('comp-' + id); if (!box) return;
+    var v = video(); var st = stimmeVon(v);
+    box.hidden = false;
+    box.innerHTML = '<div class="hint">Zwei bis vier Sätze, höchstens zwei Emojis, kein Gedankenstrich, keine Prozentzahl.</div>' +
+      '<textarea id="ta-' + esc(id) + '" placeholder="Antwort …">' + esc(text || '') + '</textarea>' +
+      '<div class="check" id="chk-' + esc(id) + '"></div>' +
+      '<div class="row"><button class="btn cta" data-send="' + esc(id) + '"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>Antwort posten</button><button class="btn ghost" data-act="vorschlag" data-id="' + esc(id) + '">Anderen Vorschlag</button><button class="btn sm" data-close="' + esc(id) + '">Abbrechen</button></div>';
+    var ta = box.querySelector('textarea'), chk = box.querySelector('.check');
+    function upd() { var p = pruefe(ta.value); chk.className = 'check ' + (p.length ? 'bad' : (ta.value.trim() ? 'ok' : '')); chk.textContent = p.length ? 'Bitte korrigieren: ' + p.join(', ') : (ta.value.trim() ? 'Selbstprüfung bestanden' : ''); }
+    ta.addEventListener('input', upd); upd(); ta.focus();
+    box.querySelector('[data-send]').addEventListener('click', function () {
+      var t = ta.value.trim(); var p = pruefe(t); if (!t) return; if (p.length) { toast('Selbstprüfung: ' + p.join(', '), true); return; }
+      this.disabled = true;
+      api('/api/meta/kommentare/' + encodeURIComponent(id) + '/antwort', { text: t }).then(function (j) { ersetze(j.kommentar); toast(j.geliked ? 'Antwort gepostet und Kommentar mit Daumen hoch markiert' : 'Antwort gepostet'); }).catch(function (e) { toast(e.message, true); });
+    });
+    box.querySelector('[data-close]').addEventListener('click', function () { box.hidden = true; box.innerHTML = ''; });
+    box.querySelector('[data-act="vorschlag"]').addEventListener('click', onAct);
+  }
+  function ersetze(c) {
+    if (!c) { laden(true); return; }
+    D.videos.forEach(function (v) { v.kommentare = v.kommentare.map(function (x) { return x.id === c.id ? c : x; }); });
+    zaehler(); renderList(); renderDetail();
+  }
+  function onAct(ev) {
+    var b = ev.currentTarget, act = b.getAttribute('data-act'), id = b.getAttribute('data-id');
+    if (act === 'antworten') {
+      openComposer(id, '');
+      var ta0 = document.getElementById('ta-' + id);
+      if (ta0) { ta0.disabled = true; ta0.placeholder = 'Die KI schreibt einen Vorschlag …'; }
+      api('/api/meta/kommentare/' + encodeURIComponent(id) + '/vorschlag', {}).then(function (j) {
+        openComposer(id, j.text);
+        if (j.ampel !== 'gruen') toast((j.ampel === 'rot' ? 'Rot' : 'Gelb') + ': Vorschlag bitte genau prüfen, bevor du postest');
+      }).catch(function (e) {
+        openComposer(id, '');
+        toast('Kein Vorschlag: ' + e.message + '. Du kannst frei schreiben.', true);
+      });
+      return;
+    }
+    if (act === 'vorschlag') {
+      var feld = document.getElementById('ta-' + id);
+      b.disabled = true; b.textContent = 'Schreibe …';
+      api('/api/meta/kommentare/' + encodeURIComponent(id) + '/vorschlag', { neu: true }).then(function (j) {
+        if (feld) { feld.value = j.text; feld.dispatchEvent(new Event('input')); }
+        else openComposer(id, j.text);
+        if (j.ampel !== 'gruen') toast((j.ampel === 'rot' ? 'Rot' : 'Gelb') + ': Vorschlag bitte genau prüfen, bevor du postest');
+      }).catch(function (e) { toast(e.message, true); }).then(function () { b.disabled = false; b.textContent = 'Anderer Vorschlag'; });
+      return;
+    }
+    if (act === 'loeschen') {
+      var karteT = document.getElementById('c-' + id);
+      var vorschau = karteT ? (karteT.querySelector('.txt') || {}).textContent || '' : '';
+      var seiteT = (D.videos.find(function (vv) { return vv.kommentare.some(function (x) { return x.id === id; }); }) || {}).pageName || 'dieser Seite';
+      if (!confirm('Diesen Kommentar bei ' + seiteT + ' ENDGÜLTIG löschen?\n\n' + vorschau.slice(0, 220) + '\n\nDas lässt sich nicht rückgängig machen. Zum Ausblenden gibt es „Verbergen".')) return;
+      b.disabled = true; b.textContent = 'Lösche …';
+      api('/api/meta/kommentare/' + encodeURIComponent(id) + '/loeschen', {}).then(function () {
+        geradeGepostet[id] = Date.now();
+        D.videos.forEach(function (v) { v.kommentare = v.kommentare.filter(function (x) { return x.id !== id; }); });
+        zaehler(); renderList();
+        toast('Kommentar gelöscht');
+        abschliessen(id);
+      }).catch(function (e) { toast(e.message, true); b.disabled = false; b.textContent = 'Löschen'; });
+      return;
+    }
+    if (act === 'verbergen') {
+      var h = b.getAttribute('data-h') === '1';
+      if (h && !confirm('Kommentar verbergen? Er bleibt für die Person selbst sichtbar, verschwindet aber für alle anderen. Gelöscht wird nichts.')) return;
+      api('/api/meta/kommentare/' + encodeURIComponent(id) + '/verbergen', { hidden: h }).then(function (j) { ersetze(j.kommentar); toast(h ? 'Verborgen' : 'Wieder sichtbar'); }).catch(function (e) { toast(e.message, true); });
+      return;
+    }
+    if (act === 'erledigt') {
+      var e2 = b.getAttribute('data-e') === '1';
+      api('/api/meta/kommentare/' + encodeURIComponent(id) + '/erledigt', { erledigt: e2 }).then(function (j) { ersetze(j.kommentar); toast(e2 ? 'Als erledigt markiert' : 'Wieder offen'); }).catch(function (e) { toast(e.message, true); });
+    }
+  }
+
+  // ── Zähler / Laden / Scan ───────────────────────────────────────────────
+  function zaehler() {
+    var o = 0, n = 0, r = 0, g = 0, b = 0;
+    D.videos.forEach(function (v) { if (v.gesperrt || v.igWarnung) return; v.kommentare.forEach(function (c) { var s = status(c); if (s === 'offen' || s === 'nachfrage') { o++; if (s === 'nachfrage') n++; if (c.ampel === 'rot') r++; if (c.ampel === 'gelb') g++; } else if (s === 'beantwortet') b++; }); });
+    $('#kOffen').textContent = o; $('#kNach').textContent = n;
+    var s = D.scan || {}; var pill = $('#scanPill');
+    pill.className = 'pill' + (s.laeuft ? ' busy' : '');
+    pill.textContent = s.laeuft ? ('Vollscan läuft: ' + (s.schritt || '…')) : (D.scannedAt ? 'Vollscan ' + rel(D.scannedAt) : 'Noch kein Scan');
+    if (s.fehler && !s.laeuft) pill.textContent += ' · Fehler: ' + s.fehler;
+    $('#btnScan').disabled = !!s.laeuft;
+    document.title = (o ? '(' + o + ') ' : '') + 'Kommentare · Leichtkraut';
+  }
+  function laden(leise) {
+    return api('/api/meta/kommentare' + (leise && version != null ? '?v=' + version : '')).then(function (j) {
+      if (j.jetzt) serverOffset = Date.parse(j.jetzt) - Date.now();
+      if (j.unchanged) { D.scan = j.scan || D.scan; D.liveCheckAt = j.liveCheckAt || D.liveCheckAt; zaehler(); tick(); return; }
+      version = j.version || 0;
+      // Neue Kommentare erkennen: alles, was wir vorher nicht kannten (nach dem ersten Laden)
+      var ids = {}; (j.videos || []).forEach(function (v) { v.kommentare.forEach(function (c) { ids[c.id] = 1; c.antworten.forEach(function (a) { if (a.id) ids[a.id] = 1; }); }); });
+      if (bekannt) {
+        var frisch = 0; Object.keys(ids).forEach(function (id) { if (!bekannt[id]) { neuIds[id] = Date.now(); frisch++; } });
+        if (frisch) toast(frisch === 1 ? '1 neuer Kommentar' : frisch + ' neue Kommentare');
+      }
+      (j.neu || []).forEach(function (x) { if (!neuIds[x.id]) neuIds[x.id] = Date.parse(x.at) || Date.now(); });
+      bekannt = ids;
+      D = j; D.videos = D.videos || [];
+      // Der Scan hinkt einer gerade geposteten Antwort ein paar Sekunden hinterher.
+      // Ohne diesen Schutz taucht die schon beantwortete Karte wieder auf.
+      var jetztMs = Date.now();
+      Object.keys(geradeGepostet).forEach(function (gid) {
+        if (jetztMs - geradeGepostet[gid] > 180000) { delete geradeGepostet[gid]; return; }
+        D.videos.forEach(function (v) { (v.kommentare || []).forEach(function (c) { if (c.id === gid) { c.beantwortet = true; c.nachfrage = false; } }); });
+      });
+      _ro = {}; D.videos.forEach(function (v) { if (v.unerreichbar) v.kommentare.forEach(function (c) { _ro[c.id] = true; }); });
+      var sp = $('#selPage'); if (sp.options.length === 1) (D.pages || []).forEach(function (p) { var o = document.createElement('option'); o.value = p.id; o.textContent = p.name; sp.appendChild(o); });
+      zaehler(); renderList(); if (!leise || sel) renderDetail();
+    }).catch(function (e) { if (!leise) toast(e.message, true); });
+  }
+  $('#btnScan').addEventListener('click', function () { api('/api/meta/kommentare/scan', {}).then(function () { toast('Scan gestartet, dauert etwa vier Minuten'); laden(true); }).catch(function (e) { toast(e.message, true); }); });
+  $('#kpis').querySelectorAll('.kpi').forEach(function (c) {
+    if (c.getAttribute('data-f') === filter) { $('#kpis').querySelectorAll('.kpi').forEach(function (x) { x.classList.remove('on'); }); c.classList.add('on'); }
+    c.addEventListener('click', function () { $('#kpis').querySelectorAll('.kpi').forEach(function (x) { x.classList.remove('on'); }); c.classList.add('on'); filter = c.getAttribute('data-f'); try { localStorage.setItem('lk-kom-filter', filter); } catch (e) {} renderList(); renderDetail(); });
+  });
+  $('#selPage').addEventListener('change', function () { page = this.value; renderList(); });
+  $('#selNet').addEventListener('change', function () { net = this.value; renderList(); });
+  $('#selQuelle').addEventListener('change', function () { quelle = this.value; renderList(); });
+  $('#selExtra').addEventListener('change', function () { extra = this.value; renderList(); renderDetail(); });
+  $('#q').addEventListener('input', function () { q = this.value.trim().toLowerCase(); renderList(); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') document.querySelectorAll('.composer:not([hidden])').forEach(function (b) { b.hidden = true; b.innerHTML = ''; }); });
+  // Beim Laden/Neuladen: erst der gespeicherte Stand (sofort sichtbar), dann ein
+  // Sofort-Check bei Meta, dann die frischen Daten.
+  function sofortCheck() {
+    if (pruefeGerade) return Promise.resolve();
+    pruefeGerade = true; tick();
+    return api('/api/meta/kommentare/live', {}).then(function () { return laden(true); }).catch(function () {}).then(function () { pruefeGerade = false; tick(); });
+  }
+  laden().then(tick).then(sofortCheck);
+  setInterval(function () { if (!document.hidden) laden(true); }, 15000);
+  document.addEventListener('visibilitychange', function () { if (!document.hidden) sofortCheck(); });
+})();
+</script>
+</body>
+</html>

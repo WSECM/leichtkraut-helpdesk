@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>🔐 Benutzer · Leichtkraut</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='24' fill='%23111'/%3E%3Ctext x='50' y='70' font-size='56' text-anchor='middle'%3E%F0%9F%94%90%3C/text%3E%3C/svg%3E">
+<style>
+  :root { --ink:#15201a; --muted:#5f7268; --dim:#9ca3af; --line:#e5e7eb; --line2:#d4d4d8; --soft:#f4f5f4; --hover:#fafbfa;
+          --gruen:#1f6f4f; --rot:#b3261e; --gelb:#8a6100 }
+  * { box-sizing:border-box }
+  html,body { margin:0; background:#fff; color:var(--ink); font:13.5px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,sans-serif }
+  body { animation:fade .22s ease-out } @keyframes fade { from{opacity:0} to{opacity:1} }
+  a { color:inherit } button { font:inherit; cursor:pointer }
+  .top { display:flex; align-items:center; gap:14px; padding:12px 22px; border-bottom:1px solid var(--line); position:sticky; top:0; background:#fff; z-index:5; flex-wrap:wrap }
+  .top h1 { margin:0; font-size:16px; font-weight:800 }
+  .top .sub { color:var(--muted); font-size:12.5px }
+  .grow { flex:1 }
+  .btn { background:#fff; border:1px solid var(--line2); border-radius:8px; padding:6px 12px; font-weight:600; font-size:12.5px; color:var(--ink); text-decoration:none; display:inline-flex; align-items:center; gap:6px }
+  .btn:hover { background:var(--hover); border-color:#111 }
+  .btn.dark { background:#111; color:#fff; border-color:#111 } .btn.dark:hover { background:#333 }
+  .btn.gruen { background:var(--gruen); color:#fff; border-color:var(--gruen) }
+  .btn.rot { color:var(--rot); border-color:#f3c9c6 } .btn.rot:hover { background:#fdecea; border-color:var(--rot) }
+  .btn.sm { padding:4px 9px; font-size:12px }
+  .btn:disabled { opacity:.5; cursor:default }
+  .wrap { max-width:860px; margin:0 auto; padding:20px 22px 70px }
+  .hinweis { border:1px solid var(--line2); border-left:3px solid #111; border-radius:10px; padding:12px 14px; background:var(--soft); margin-bottom:18px; color:#333 }
+  h2 { font-size:14.5px; margin:22px 0 8px }
+  .karte { border:1px solid var(--line2); border-radius:12px; padding:14px 16px; margin-bottom:12px }
+  .karte.ich { border-color:#111; box-shadow:inset 0 0 0 1px #111 }
+  .kopf { display:flex; align-items:center; gap:10px; flex-wrap:wrap }
+  .nm { font-weight:800; font-size:15px }
+  .chip { font-size:11px; font-weight:700; padding:2px 8px; border-radius:999px; background:var(--soft); color:var(--muted) }
+  .chip.admin { background:#111; color:#fff } .chip.ok { background:#e6f5ec; color:var(--gruen) }
+  .chip.warn { background:#fff5d6; color:var(--gelb) }
+  .meta { color:var(--muted); font-size:12px; margin-top:3px }
+  .akt { display:flex; gap:7px; margin-top:11px; flex-wrap:wrap; align-items:center }
+  .feld { display:none; margin-top:11px; padding-top:11px; border-top:1px solid var(--line); gap:8px; flex-wrap:wrap; align-items:flex-start }
+  .feld.on { display:flex }
+  input { border:1px solid var(--line2); border-radius:8px; padding:8px 10px; font:inherit; min-width:210px }
+  input:focus { outline:2px solid #111; outline-offset:-1px }
+  .staerke { font-size:11.5px; color:var(--muted); width:100%; margin-top:-2px }
+  .staerke.ok { color:var(--gruen) } .staerke.bad { color:var(--rot) }
+  select { border:1px solid var(--line2); border-radius:8px; padding:8px 10px; font:inherit }
+  .toast { position:fixed; left:50%; bottom:22px; transform:translateX(-50%); background:#111; color:#fff; padding:10px 16px; border-radius:9px; font-weight:600; opacity:0; transition:opacity .25s; pointer-events:none; z-index:20; max-width:90vw; text-align:center }
+  .toast.bad { background:var(--rot) } .toast.show { opacity:1 }
+  .gefahr { border:1px solid #f3c9c6; background:#fdecea; border-radius:12px; padding:14px 16px; margin-top:26px }
+  .gefahr b { color:var(--rot) }
+</style>
+</head>
+<body>
+<div class="top">
+  <div><h1>🔐 Benutzer und Passwörter</h1><div class="sub">Passwörter werden nur hier im Browser eingegeben und niemals im Klartext gespeichert</div></div>
+  <span class="grow"></span>
+  <a class="btn" href="/">Zum Mail-Tool</a>
+  <a class="btn" href="/team">Team</a>
+</div>
+<div class="wrap">
+  <div class="hinweis">
+    <b>So gehst du vor.</b> Zuerst dein eigenes Passwort ändern, sonst sperrst du dich beim nächsten Schritt aus.
+    Danach die Passwörter der anderen setzen. Zum Schluss unten auf „Alle abmelden“, dann müssen sich alle mit dem neuen Passwort anmelden.
+    Ein neues Passwort beendet automatisch alle Sitzungen der betroffenen Person.
+  </div>
+
+  <h2>Konten</h2>
+  <div id="liste">Lade …</div>
+
+  <h2>Neues Konto anlegen</h2>
+  <div class="karte">
+    <div class="akt" style="margin-top:0">
+      <input id="nName" placeholder="Name, z. B. Anna" autocomplete="off">
+      <select id="nRolle"><option value="agent">Mitarbeiterin</option><option value="admin">Admin</option></select>
+      <select id="nSprache"><option value="en">Englisch</option><option value="de">Deutsch</option></select>
+      <button class="btn dark" id="btnNeu">Anlegen</button>
+    </div>
+    <div class="meta">Das Konto wird ohne Passwort angelegt und ist gesperrt, bis du oben eines setzt. So muss kein Passwort per Chat oder Mail verschickt werden.</div>
+  </div>
+
+  <div class="gefahr">
+    <b>Alle abmelden</b>
+    <div class="meta" style="margin-top:4px">Beendet sämtliche Sitzungen. Alle müssen sich neu anmelden, mit dem jeweils aktuellen Passwort. Mache das erst, wenn die neuen Passwörter stehen.</div>
+    <div class="akt">
+      <button class="btn rot" id="btnAlle">Alle anderen abmelden</button>
+      <button class="btn rot" id="btnAlleInkl">Alle abmelden, mich eingeschlossen</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+(function () {
+  var U = [], ICH = null;
+  var $ = function (s) { return document.querySelector(s); };
+  var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]; }); };
+  function toast(m, bad) { var t = $('#toast'); t.textContent = m; t.className = 'toast show' + (bad ? ' bad' : ''); clearTimeout(t._h); t._h = setTimeout(function () { t.className = 'toast'; }, 4200); }
+  function api(p, body, method) {
+    return fetch(p, { method: method || (body ? 'POST' : 'GET'), headers: { 'Content-Type': 'application/json' }, body: body ? JSON.stringify(body) : undefined })
+      .then(function (r) { return r.json().catch(function () { return {}; }).then(function (j) { if (!r.ok) throw new Error(j.error || ('HTTP ' + r.status)); return j; }); });
+  }
+  function abs(iso) { return iso ? new Date(iso).toLocaleString('de-DE', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' }) : ''; }
+  function pruefe(p) {
+    if (p.length < 10) return ['bad', 'Mindestens 10 Zeichen, aktuell ' + p.length + '.'];
+    var arten = (/[a-z]/.test(p) ? 1 : 0) + (/[A-Z]/.test(p) ? 1 : 0) + (/[0-9]/.test(p) ? 1 : 0) + (/[^a-zA-Z0-9]/.test(p) ? 1 : 0);
+    if (p.length >= 16 || arten >= 3) return ['ok', 'Gut.'];
+    return ['', 'Brauchbar. Länger oder gemischter wäre besser.'];
+  }
+
+  function render() {
+    $('#liste').innerHTML = U.map(function (u) {
+      var ich = u.id === ICH;
+      return '<div class="karte' + (ich ? ' ich' : '') + '">' +
+        '<div class="kopf"><span class="nm">' + esc(u.name) + '</span>' +
+        '<span class="chip ' + (u.role === 'admin' ? 'admin' : '') + '">' + (u.role === 'admin' ? 'Admin' : 'Mitarbeiterin') + '</span>' +
+        '<span class="chip">' + (u.uiLang === 'de' ? 'Deutsch' : 'Englisch') + '</span>' +
+        (u.hatPasswort ? '' : '<span class="chip warn">kein Passwort, Konto gesperrt</span>') +
+        (ich ? '<span class="chip ok">das bist du</span>' : '') + '</div>' +
+        '<div class="meta">angelegt ' + abs(u.created) + (u.passChanged ? ' · Passwort zuletzt geändert ' + abs(u.passChanged) : ' · Passwort nie geändert') + '</div>' +
+        '<div class="akt">' +
+          '<button class="btn gruen" data-pw="' + u.id + '">' + (ich ? 'Mein Passwort ändern' : 'Passwort setzen') + '</button>' +
+          (ich ? '' : '<button class="btn rot" data-del="' + u.id + '" data-nm="' + esc(u.name) + '">Konto löschen</button>') +
+        '</div>' +
+        '<div class="feld" id="f-' + u.id + '"></div>' +
+        '</div>';
+    }).join('');
+    $('#liste').querySelectorAll('[data-pw]').forEach(function (b) { b.addEventListener('click', function () { oeffnePw(b.getAttribute('data-pw')); }); });
+    $('#liste').querySelectorAll('[data-del]').forEach(function (b) { b.addEventListener('click', function () { loeschen(b.getAttribute('data-del'), b.getAttribute('data-nm')); }); });
+  }
+
+  function oeffnePw(id) {
+    var ich = id === ICH, f = document.getElementById('f-' + id);
+    if (f.classList.contains('on')) { f.classList.remove('on'); f.innerHTML = ''; return; }
+    f.classList.add('on');
+    f.innerHTML = (ich ? '<input type="password" id="alt-' + id + '" placeholder="Aktuelles Passwort" autocomplete="current-password">' : '') +
+      '<input type="password" id="neu-' + id + '" placeholder="Neues Passwort" autocomplete="new-password">' +
+      '<input type="password" id="wdh-' + id + '" placeholder="Wiederholen" autocomplete="new-password">' +
+      '<button class="btn dark" id="ok-' + id + '">Speichern</button>' +
+      '<div class="staerke" id="st-' + id + '"></div>';
+    var neu = document.getElementById('neu-' + id), st = document.getElementById('st-' + id);
+    neu.addEventListener('input', function () { var r = pruefe(neu.value); st.className = 'staerke ' + r[0]; st.textContent = r[1]; });
+    neu.focus();
+    document.getElementById('ok-' + id).addEventListener('click', function () {
+      var n = neu.value, w = document.getElementById('wdh-' + id).value;
+      if (n.length < 10) return toast('Mindestens 10 Zeichen.', true);
+      if (n !== w) return toast('Die beiden Eingaben sind nicht gleich.', true);
+      this.disabled = true;
+      var p = ich
+        ? api('/api/auth/password', { aktuell: document.getElementById('alt-' + id).value, neu: n })
+        : api('/api/auth/users/' + encodeURIComponent(id) + '/password', { neu: n });
+      p.then(function (j) {
+        toast(ich ? 'Dein Passwort ist geändert. Deine anderen Sitzungen wurden beendet.'
+                  : 'Passwort gesetzt. Die Person muss sich neu anmelden.');
+        f.classList.remove('on'); f.innerHTML = ''; laden();
+      }).catch(function (e) { toast(e.message, true); document.getElementById('ok-' + id).disabled = false; });
+    });
+  }
+
+  function loeschen(id, nm) {
+    if (!confirm('Konto „' + nm + '“ endgültig löschen?\n\nGesendete Mails und die Zeiterfassung bleiben erhalten, sie hängen nicht am Konto. Die Person kann sich danach nicht mehr anmelden.')) return;
+    api('/api/auth/users/' + encodeURIComponent(id), null, 'DELETE')
+      .then(function () { toast('Konto ' + nm + ' gelöscht.'); laden(); })
+      .catch(function (e) { toast(e.message, true); });
+  }
+
+  $('#btnNeu').addEventListener('click', function () {
+    var name = $('#nName').value.trim();
+    if (!name) return toast('Name fehlt.', true);
+    this.disabled = true;
+    api('/api/auth/users', { name: name, role: $('#nRolle').value, uiLang: $('#nSprache').value })
+      .then(function () { toast('Konto ' + name + ' angelegt. Jetzt oben ein Passwort setzen.'); $('#nName').value = ''; laden(); })
+      .catch(function (e) { toast(e.message, true); })
+      .then(function () { $('#btnNeu').disabled = false; });
+  });
+
+  $('#btnAlle').addEventListener('click', function () {
+    if (!confirm('Alle anderen abmelden?\n\nDeine eigene Sitzung bleibt bestehen.')) return;
+    api('/api/auth/logout-all', { meineBehalten: true }).then(function (j) { toast(j.beendet + ' Sitzung(en) beendet.'); }).catch(function (e) { toast(e.message, true); });
+  });
+  $('#btnAlleInkl').addEventListener('click', function () {
+    if (!confirm('Wirklich ALLE abmelden, dich eingeschlossen?\n\nDu wirst sofort zur Anmeldung geschickt und brauchst dein aktuelles Passwort.')) return;
+    api('/api/auth/logout-all', { meineBehalten: false }).then(function () { location.href = '/login'; }).catch(function (e) { toast(e.message, true); });
+  });
+
+  function laden() {
+    return api('/api/auth/users').then(function (j) { U = j.users || []; ICH = j.ich; render(); })
+      .catch(function (e) { $('#liste').innerHTML = '<div class="karte">' + esc(e.message) + '</div>'; });
+  }
+  laden();
+})();
+</script>
+</body>
+</html>

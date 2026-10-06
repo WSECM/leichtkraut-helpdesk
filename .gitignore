@@ -1,0 +1,24 @@
+# ── NIEMALS committen ────────────────────────────────────────────────────────
+# Dieses Repository enthaelt ausschliesslich Programmcode.
+# Betriebsdaten und Zugangsdaten bleiben auf dem Server.
+.env
+.env.*
+!.env.example
+
+# Betriebsdaten: echte Kundenmails, Adressen, Bestellnummern, Anhaenge,
+# Zugangstoken (connections.json), Passwort-Hashes, Sitzungen, Zeiterfassung
+server/data/
+data/
+backups/
+server/versions/
+
+# Sicherungskopien beim Bearbeiten
+*.bak
+*.bak-*
+*.bak2-*
+*.tmp
+
+node_modules/
+npm-debug.log*
+.DS_Store
+._*

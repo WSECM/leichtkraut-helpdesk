@@ -1,0 +1,24 @@
+{
+  "_hinweis": "Kopie nach server/data/meta-config.json legen und mit den eigenen Werten fuellen. Diese Datei wird NICHT versioniert, weil sie betriebliche Angaben enthaelt.",
+
+  "adAccount": "act_0000000000000000",
+  "kampagnen": ["000000000000000000", "000000000000000000"],
+
+  "markenSeite": "000000000000000",
+  "signatur": "Dein Team",
+
+  "stimmen": {
+    "000000000000000": {
+      "wer": "Marke",
+      "stimme": "wir",
+      "anrede": "du",
+      "hinweis": "Die Marke spricht als wir und duzt. Signatur wird automatisch angehaengt."
+    },
+    "000000000000001": {
+      "wer": "Vorname Nachname",
+      "stimme": "ich",
+      "anrede": "du",
+      "hinweis": "Eine Person, die ihre eigene Geschichte erzaehlt. Sagt ich, nie unser Produkt. Die Firma heisst das Team."
+    }
+  }
+}

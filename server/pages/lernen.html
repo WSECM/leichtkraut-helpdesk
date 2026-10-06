@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>🎓 Lernschleife · Leichtkraut</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='24' fill='%23111'/%3E%3Ctext x='50' y='70' font-size='58' text-anchor='middle'%3E%F0%9F%8E%93%3C/text%3E%3C/svg%3E">
+<style>
+  :root { --bg:#fff; --ink:#111; --muted:#6b7280; --dim:#9ca3af; --line:#e5e7eb; --line2:#d4d4d8; --soft:#f4f4f5; --hover:#f9fafb; --gruen:#16a34a; --rot:#dc2626 }
+  * { box-sizing:border-box }
+  html,body { margin:0; background:var(--bg); color:var(--ink); font:13.5px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,sans-serif }
+  body { animation:fade .25s ease-out } @keyframes fade { from{opacity:0} to{opacity:1} }
+  @keyframes rise { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:none} }
+  a { color:inherit } button { font:inherit; cursor:pointer }
+  .top { position:sticky; top:0; z-index:5; display:flex; align-items:center; gap:14px; padding:12px 22px; border-bottom:1px solid var(--line); background:#fff; flex-wrap:wrap }
+  .top h1 { margin:0; font-size:16px; font-weight:800; letter-spacing:-.01em }
+  .top .sub { color:var(--muted); font-size:12.5px }
+  .grow { flex:1 }
+  .btn { background:#fff; border:1px solid var(--line2); color:var(--ink); border-radius:8px; padding:6px 12px; font-weight:600; font-size:12.5px; display:inline-flex; align-items:center; gap:6px; text-decoration:none }
+  .btn:hover { background:var(--hover); border-color:#111 }
+  .btn.black { background:#111; color:#fff; border-color:#111 } .btn.black:hover { background:#333 }
+  .btn.gruen { background:var(--gruen); color:#fff; border-color:var(--gruen) }
+  .btn:disabled { opacity:.5; cursor:default }
+  .wrap { max-width:900px; margin:0 auto; padding:20px 22px 70px }
+  .hinweis { border:1px solid var(--line2); border-left:3px solid #111; border-radius:10px; padding:12px 14px; color:#333; margin-bottom:18px; background:var(--soft) }
+  .tabs { display:flex; gap:6px; margin-bottom:14px; flex-wrap:wrap }
+  .tab { border:1px solid var(--line2); background:#fff; border-radius:999px; padding:5px 13px; font-weight:700; font-size:12.5px; color:var(--muted) }
+  .tab.on { background:#111; color:#fff; border-color:#111 }
+  .v { border:1px solid var(--line2); border-radius:12px; padding:14px 16px; margin-bottom:12px; animation:rise .2s ease-out both }
+  .v.uebernommen { border-color:var(--gruen); background:#f6fdf8 } .v.verworfen { opacity:.55 }
+  .v .kopf { display:flex; gap:8px; align-items:center; font-size:11.5px; color:var(--muted); margin-bottom:8px; flex-wrap:wrap }
+  .chip { font-size:11px; font-weight:700; padding:2px 8px; border-radius:999px; background:var(--soft); color:var(--muted) }
+  .chip.gruen { background:#dcfce7; color:#15803d } .chip.rot { background:#fee2e2; color:var(--rot) }
+  .v textarea { width:100%; min-height:76px; border:1px solid var(--line2); border-radius:9px; padding:9px 11px; font:inherit; resize:vertical }
+  .v .warum { color:var(--muted); font-size:12.5px; margin:8px 0 0 }
+  .v .akt { display:flex; gap:7px; margin-top:10px; flex-wrap:wrap; align-items:center }
+  .empty { text-align:center; color:var(--muted); padding:50px 20px }
+  .toast { position:fixed; left:50%; bottom:22px; transform:translateX(-50%); background:#111; color:#fff; padding:9px 15px; border-radius:9px; font-weight:600; opacity:0; transition:opacity .25s; pointer-events:none; z-index:20 }
+  .toast.bad { background:var(--rot) } .toast.show { opacity:1 }
+</style>
+</head>
+<body>
+<div class="top">
+  <div><h1>🎓 Lernschleife</h1><div class="sub">Regelvorschläge aus dem Vergleich: Barbaras Entwurf gegen das, was wirklich gesendet wurde</div></div>
+  <span class="grow"></span>
+  <span class="sub" id="stand">–</span>
+  <button class="btn" id="btnLauf">Jetzt auswerten</button>
+  <a class="btn" href="/">Zum Mail-Tool</a>
+</div>
+<div class="wrap">
+  <div class="hinweis"><b>Nichts wird automatisch übernommen.</b> Vorschläge entstehen jede Nacht von allein, aber eine Lektion gilt in Barbaras Anweisung als verbindlich über allem anderen und landet damit direkt in Kundenmails. Deshalb entscheidest du. Text vor dem Übernehmen gerne anpassen.</div>
+  <div class="tabs" id="tabs">
+    <button class="tab on" data-f="offen">Offen <span id="nOffen">0</span></button>
+    <button class="tab" data-f="uebernommen">Übernommen <span id="nUeb">0</span></button>
+    <button class="tab" data-f="verworfen">Verworfen <span id="nVer">0</span></button>
+  </div>
+  <div id="liste"><div class="empty">Lade …</div></div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+(function () {
+  var V = [], filter = 'offen';
+  var $ = function (s) { return document.querySelector(s); };
+  var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]; }); };
+  function toast(m, bad) { var t = $('#toast'); t.textContent = m; t.className = 'toast show' + (bad ? ' bad' : ''); clearTimeout(t._h); t._h = setTimeout(function () { t.className = 'toast'; }, 3200); }
+  function api(p, body) { return fetch(p, body ? { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) } : {}).then(function (r) { return r.json().catch(function(){return {}}).then(function (j) { if (!r.ok) throw new Error(j.error || 'HTTP ' + r.status); return j; }); }); }
+  function abs(iso) { return iso ? new Date(iso).toLocaleString('de-DE', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' }) : ''; }
+  function render() {
+    var l = V.filter(function (v) { return (v.status || 'offen') === filter; });
+    $('#nOffen').textContent = V.filter(function (v) { return (v.status||'offen') === 'offen'; }).length;
+    $('#nUeb').textContent = V.filter(function (v) { return v.status === 'uebernommen'; }).length;
+    $('#nVer').textContent = V.filter(function (v) { return v.status === 'verworfen'; }).length;
+    if (!l.length) { $('#liste').innerHTML = '<div class="empty">' + (filter === 'offen' ? 'Keine offenen Vorschläge. Die nächste Auswertung läuft heute Nacht.' : 'Nichts hier.') + '</div>'; return; }
+    $('#liste').innerHTML = l.map(function (v) {
+      var offen = (v.status || 'offen') === 'offen';
+      return '<div class="v ' + esc(v.status || 'offen') + '">' +
+        '<div class="kopf"><span>' + abs(v.erzeugt) + '</span>' + (v.basis ? '<span class="chip">aus ' + v.basis + ' Korrekturen</span>' : '') +
+        (v.belege && v.belege.length ? '<span class="chip">Belege: ' + esc(v.belege.join(', ')) + '</span>' : '') +
+        (v.tags || []).map(function (t) { return '<span class="chip">' + esc(t) + '</span>'; }).join('') +
+        (v.status === 'uebernommen' ? '<span class="chip gruen">übernommen</span>' : '') + (v.status === 'verworfen' ? '<span class="chip rot">verworfen</span>' : '') + '</div>' +
+        (offen ? '<textarea id="t-' + v.id + '">' + esc(v.text) + '</textarea>' : '<div>' + esc(v.text) + '</div>') +
+        (v.begruendung ? '<p class="warum">' + esc(v.begruendung) + '</p>' : '') +
+        (offen ? '<div class="akt"><button class="btn gruen" data-ok="' + v.id + '">Als Lektion übernehmen</button><button class="btn" data-no="' + v.id + '">Verwerfen</button></div>' : '') +
+        '</div>';
+    }).join('');
+    $('#liste').querySelectorAll('[data-ok]').forEach(function (b) { b.addEventListener('click', function () {
+      var id = b.getAttribute('data-ok'); var t = document.getElementById('t-' + id);
+      if (!confirm('Diese Regel wird ab sofort für JEDE Kundenmail verbindlich. Übernehmen?')) return;
+      b.disabled = true;
+      api('/api/lessons/vorschlaege/' + id, { aktion:'uebernehmen', text: t ? t.value : undefined })
+        .then(function (j) { toast('Übernommen · jetzt ' + j.lektionen + ' Lektionen'); laden(); })
+        .catch(function (e) { toast(e.message, true); b.disabled = false; });
+    }); });
+    $('#liste').querySelectorAll('[data-no]').forEach(function (b) { b.addEventListener('click', function () {
+      api('/api/lessons/vorschlaege/' + b.getAttribute('data-no'), { aktion:'verwerfen' }).then(function () { toast('Verworfen'); laden(); }).catch(function (e) { toast(e.message, true); });
+    }); });
+  }
+  $('#tabs').querySelectorAll('.tab').forEach(function (t) { t.addEventListener('click', function () {
+    $('#tabs').querySelectorAll('.tab').forEach(function (x) { x.classList.remove('on'); }); t.classList.add('on');
+    filter = t.getAttribute('data-f'); render();
+  }); });
+  $('#btnLauf').addEventListener('click', function () {
+    var b = this; b.disabled = true; b.textContent = 'Werte aus …';
+    api('/api/lessons/lernen', {}).then(function (j) {
+      toast(j.ok ? (j.ausgewertet + ' Korrekturen ausgewertet, ' + j.neu + ' neue Vorschläge') : ('Kein Lauf: ' + j.grund), !j.ok);
+      laden();
+    }).catch(function (e) { toast(e.message, true); }).then(function () { b.disabled = false; b.textContent = 'Jetzt auswerten'; });
+  });
+  function laden() {
+    return api('/api/lessons/vorschlaege').then(function (j) {
+      V = j.vorschlaege || [];
+      $('#stand').textContent = V.length ? 'zuletzt ' + abs(V[0].erzeugt) : 'noch keine Auswertung';
+      render();
+    }).catch(function (e) { $('#liste').innerHTML = '<div class="empty">' + esc(e.message) + '</div>'; });
+  }
+  laden();
+})();
+</script>
+</body>
+</html>
